@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_storage_path/flutter_storage_path.dart';
 import 'package:gallary/Model/class.dart';
-import 'package:gallary/Screens/AlbumVideo.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:gallary/Screens/AlbumImage1.dart';
+import 'package:gallary/Screens/AlbumVideo.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 class FirstScreen extends StatefulWidget {
@@ -22,7 +21,6 @@ class _FirstScreenState extends State<FirstScreen> {
   int selectedIndex = 0;
   List<VideoFIles> videos = [];
   int index = 0;
-  String? videooPath;
 
   @override
   void initState() {
@@ -43,7 +41,10 @@ class _FirstScreenState extends State<FirstScreen> {
     try {
       videoPath = (await StoragePath.videoPath)!;
       final videoJson = jsonDecode(videoPath) as List<dynamic>;
-      videos = videoJson.map((video) => VideoFIles.fromJson(video)).toList();
+      videos = videoJson
+          .map((video) => VideoFIles.fromJson(video))
+          .where((video) => video.files![index].path!.endsWith('.mp4'))
+          .toList();
       setState(() {});
     } on PlatformException {
       videoPath = "Failed to path Load";
@@ -51,13 +52,9 @@ class _FirstScreenState extends State<FirstScreen> {
     return videoPath;
   }
 
-  Future<String?> getVideoThumbnail() async {
-    final videoThumb = await VideoThumbnail.thumbnailFile(
-        video: videooPath!,
-      thumbnailPath: (await getTemporaryDirectory()).path,
-      imageFormat: ImageFormat.JPEG,
-    );
-    return videoThumb;
+  Future<String?> getImage(thumbnail) async {
+    final thumb = await VideoThumbnail.thumbnailFile(video: thumbnail);
+    return thumb;
   }
 
   @override
@@ -85,17 +82,100 @@ class _FirstScreenState extends State<FirstScreen> {
           children: [
             albums.isEmpty
                 ? const SizedBox(
-                    height: 50,
-                    width: 50,
-                    child: Center(child: CircularProgressIndicator()))
+                height: 50,
+                width: 50,
+                child: Center(child: CircularProgressIndicator()))
                 : PhotosFiles(),
             videos.isEmpty
                 ? const SizedBox(
-                    height: 50,
-                    width: 50,
-                    child: Center(child: CircularProgressIndicator()))
+                height: 50,
+                width: 50,
+                child: Center(child: CircularProgressIndicator()))
                 : VideosFiles()
           ],
+        ),
+      ),
+    );
+  }
+
+
+  Widget VideosFiles() {
+    return Padding(
+      padding: const EdgeInsets.all(14.0),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemCount: videos.length,
+          itemBuilder: (context, index) {
+            final video = videos[index];
+            if (video != null) {
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedIndex = index;
+                  });
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context) {
+                      return AlbumVideo1(videos: video.files!.map((file) => file.path!).toList());
+                    },
+                  ));
+                },
+                child: FutureBuilder<String?>(
+                  future: getImage(video.files![0].path),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (snapshot.hasData) {
+                        return Hero(
+                          tag: video.files![0].path!,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Column(
+                              children: [
+                                Expanded(child: Image.file(File(snapshot.data!),fit: BoxFit.cover)),
+                                Text(
+                                  video.folderName ?? 'Unknown',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  '${video.files?.length ?? 0} videos',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      } else {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                    } else {
+                      print("File not found");
+                      return Container(); // Add a return statement here
+                    }
+                  },
+                ),
+              );
+            }
+            else {
+              return Container();
+            }
+          },
         ),
       ),
     );
@@ -147,65 +227,6 @@ class _FirstScreenState extends State<FirstScreen> {
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget VideosFiles() {
-    return Padding(
-      padding: const EdgeInsets.all(14.0),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-          ),
-          itemCount: videos.length,
-          itemBuilder: (context, index) {
-            final video = videos[index];
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (context) {
-                    return SecondScreen(images: video.files!);
-                  },
-                ));
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
-                  // image: DecorationImage(
-                  //    image: FileImage(File(video.files![0]))
-                  // )
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      video.folderName ?? "",
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '${video.files?.length ?? 0} videos',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.black,
                       ),
                     ),
                   ],
