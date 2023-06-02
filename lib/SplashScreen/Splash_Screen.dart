@@ -16,13 +16,13 @@ class _Splash_ScreenState extends State<Splash_Screen> {
   void initState() {
     super.initState();
     Timer(
-      Duration(seconds: 5),
-      () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => FirstScreen(),)),
+      const Duration(seconds: 5),
+      () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const FirstScreen(),))
     );
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: Center(
           child: Text("Splash Screen",style: TextStyle(color: Colors.black)),
