@@ -1,3 +1,4 @@
+//@dart=2.9
 import 'package:flutter/material.dart';
 import 'package:gallary/SplashScreen/Splash_Screen.dart';
 void main() {
@@ -5,7 +6,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-   MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

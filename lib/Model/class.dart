@@ -1,8 +1,8 @@
 class AlbumModel {
-  final List<String>? files;
-  final String? folderName;
+  final List<String> files; // Update the parameter name to 'files'
+  final String folderName;
 
-  AlbumModel({this.files, this.folderName});
+  AlbumModel({required this.files, required this.folderName});
 
   factory AlbumModel.fromJson(Map<String, dynamic> json) {
     return AlbumModel(
@@ -11,6 +11,7 @@ class AlbumModel {
     );
   }
 }
+
 
 class VideoFIles {
   List<Files>? files;

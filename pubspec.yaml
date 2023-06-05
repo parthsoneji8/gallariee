@@ -36,17 +36,15 @@ dependencies:
   cupertino_icons: ^1.0.2
   video_thumbnail: ^0.5.3
   video_player: ^2.6.1
-  device_info_plus: ^9.0.2
-  loadmore: ^2.1.0
-  blurhash_dart: ^1.2.1
-  image: ^4.0.17
+  flutter_image_compress: ^2.0.3
+  path_provider: ^2.0.8
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  permission_handler:
   flutter_storage_path: 1.0.4
-  path_provider: ^2.0.15
+  permission_handler:
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

@@ -42,11 +42,39 @@ class _SecondScreenState extends State<SecondScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => ThirdScreen(image: selectedimage)));
                   },
                   child: Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(25),
+                    height: 200,
+                    width: double.infinity,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(
+                              File(album),
+                              // Use the correct index to access files
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
-                    child: Image.file(File(album),fit: BoxFit.cover)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Colors.black54,
+                                  Colors.transparent
+                                ],
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.center,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      ],
                     ),
+                  ),
                 );
               },
             ),
