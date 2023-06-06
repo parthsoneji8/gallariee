@@ -18,7 +18,7 @@ class _SecondScreenState extends State<SecondScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        child: Padding(
+        child:  Padding(
           padding: const EdgeInsets.all(14.0),
           child: SizedBox(
             height: MediaQuery.of(context).size.height,
@@ -29,17 +29,24 @@ class _SecondScreenState extends State<SecondScreen> {
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
-              itemCount: widget.images!.length,
+              itemCount: widget.images.length,
               itemBuilder: (context, index) {
-                final album = widget.images![index];
+                final album = widget.images[index];
                 print(album.toString());
+                final isThumbnail = index == 0; // Check if it's the first item (thumbnail)
+
                 return GestureDetector(
                   onTap: () {
                     setState(() {
                       selectedimage = album;
                     });
 
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => ThirdScreen(image: selectedimage)));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ThirdScreen(image: selectedimage),
+                      ),
+                    );
                   },
                   child: Container(
                     height: 200,
@@ -51,27 +58,32 @@ class _SecondScreenState extends State<SecondScreen> {
                             borderRadius: BorderRadius.circular(10),
                             child: Image.file(
                               File(album),
-                              // Use the correct index to access files
-                              fit: BoxFit.cover,
+                              fit: BoxFit.fill,
                             ),
                           ),
                         ),
+                        if (isThumbnail) // Show video icon only for the thumbnail
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: Icon(
+                              Icons.video_library,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
                         Positioned.fill(
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
                               gradient: const LinearGradient(
-                                colors: [
-                                  Colors.black54,
-                                  Colors.transparent
-                                ],
+                                colors: [Colors.black54, Colors.transparent],
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.center,
                               ),
                             ),
                           ),
                         ),
-
                       ],
                     ),
                   ),
@@ -80,7 +92,7 @@ class _SecondScreenState extends State<SecondScreen> {
             ),
           ),
         ),
-      )
+      ),
     );
   }
 }

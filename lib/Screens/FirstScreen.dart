@@ -24,7 +24,7 @@ class _FirstScreenState extends State<FirstScreen> {
   List<VideoFIles> videos;
   int index = 0;
   bool isSelected = true;
-
+  List<String> preloadedThumbnails = [];
   @override
   void initState() {
     super.initState();
@@ -35,6 +35,7 @@ class _FirstScreenState extends State<FirstScreen> {
     if (await Permission.storage.request().isGranted) {
       getAlbums();
       videoPath();
+      getImage(preloadedThumbnails);
     } else {
       return Text("Get A Permission");
     }
@@ -47,6 +48,7 @@ class _FirstScreenState extends State<FirstScreen> {
       albums = albumsJson.map((album) => AlbumModel.fromJson(album)).toList();
     });
   }
+
 
   Future<String> videoPath() async {
     String videoPath = '';
@@ -61,12 +63,14 @@ class _FirstScreenState extends State<FirstScreen> {
     } on PlatformException {
       videoPath = "Failed to path Load";
     }
-    setState(() {});
+    setState(() {
+
+    });
     return videoPath;
   }
 
-  Future<String> getImage(String thumbnail) async {
-    final thumb = await VideoThumbnail.thumbnailFile(video: thumbnail);
+  Future<String> getImage(thumbnail) {
+    final thumb = VideoThumbnail.thumbnailFile(video: thumbnail);
     return thumb;
   }
 
@@ -165,7 +169,6 @@ class _FirstScreenState extends State<FirstScreen> {
                   itemCount: albums.length,
                   itemBuilder: (BuildContext context, int index) {
                     final album = albums[index]; // Retrieve the current album
-
                     return InkWell(
                       onTap: () {
                         Navigator.push(context, MaterialPageRoute(
@@ -227,93 +230,130 @@ class _FirstScreenState extends State<FirstScreen> {
                 ),
               ));
   }
-
   Widget VideosFiles() {
+    List<Widget> validWidgets = [];
+
+    for (int index = 0; index < videos.length; index++) {
+      final video = videos[index];
+      if (video.files != null && video.files.isNotEmpty) {
+        int thumbnailIndex = -1;
+        for (int i = 0; i < video.files.length; i++) {
+          if (video.files[i].path != null && video.files[i].path != null) {
+            thumbnailIndex = i;
+            break;
+          }
+        }
+
+        if (thumbnailIndex != -1) {
+          final videoPath = video.files[thumbnailIndex].path;
+
+          validWidgets.add(
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AlbumVideo1(
+                      videos: video, thumbnails: preloadedThumbnails,
+                    ),
+                  ),
+                );
+              },
+              child: FutureBuilder<String>(
+                future: getImage(videoPath),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.hasData) {
+                      preloadedThumbnails.add(snapshot.data);
+                      return Hero(
+                        tag: videoPath,
+                        child: Container(
+                          height: 200,
+                          width: double.infinity,
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.file(
+                                        File(snapshot.data),
+                                        fit: BoxFit.fill)),
+                              ),
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Colors.black54,
+                                        Colors.transparent
+                                      ],
+                                      begin: Alignment.bottomCenter,
+                                      end: Alignment.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 10,
+                                left: 10,
+                                right: 10,
+                                child: Text(
+                                  video.folderName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                  return Container();
+                },
+              ),
+            ),
+          );
+        }
+      }
+    }
+
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(14.0),
         child: SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          height: MediaQuery
+              .of(context)
+              .size
+              .height,
+          child: Visibility(
+            visible: videos == null || videos.isEmpty,
+            // Show progress indicator if videos list is null or empty
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+            replacement: GridView.count(
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
+              children: validWidgets,
             ),
-            itemCount: videos.length,
-            itemBuilder: (context, index) {
-              final video = videos[index];
-              if (video.files != null && video.files.isNotEmpty) {
-                final videoPath = video.files.length > 1 ? video.files[1].path : '';
-                print(videoPath.toString());
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedIndex = index;
-                    });
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AlbumVideo1(videos: video),
-                      ),
-                    );
-                  },
-                  child: FutureBuilder<String>(
-                    future: getImage(videoPath),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasData) {
-                          return Hero(
-                            tag: videoPath,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: Image.file(
-                                      File(snapshot.data),
-                                      fit: BoxFit.fill,
-                                    ),
-                                  ),
-                                  Text(
-                                    video.folderName ?? 'Unknown',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${video.files?.length ?? 0} videos',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        } else {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                      } else {
-                        return Container();
-                      }
-                    },
-                  ),
-                );
-              } else {
-                return Container();
-              }
-            },
           ),
         ),
       ),
     );
   }
 }
+
+
+

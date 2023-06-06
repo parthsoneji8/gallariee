@@ -6,7 +6,14 @@ import 'package:video_player/video_player.dart';
 class AlbumVideo2 extends StatefulWidget {
   final List<String> videos;
   final int initialIndex;
-  const AlbumVideo2({Key? key, required this.videos, required this.initialIndex}) : super(key: key);
+  final List<String> thumbnails;
+
+  const AlbumVideo2({
+    Key? key,
+    required this.videos,
+    required this.initialIndex,
+    required this.thumbnails,
+  }) : super(key: key);
 
   @override
   State<AlbumVideo2> createState() => _AlbumVideo2State();
@@ -21,9 +28,11 @@ class _AlbumVideo2State extends State<AlbumVideo2> {
   void initState() {
     super.initState();
     pageController = PageController(initialPage: widget.initialIndex);
-    videoPlayerController = VideoPlayerController.file(File(widget.videos[widget.initialIndex]));
+    videoPlayerController =
+        VideoPlayerController.file(File(widget.videos[widget.initialIndex]));
     _initializeVideoPlayerFuture = videoPlayerController.initialize();
   }
+
   @override
   void dispose() {
     super.dispose();
@@ -43,12 +52,14 @@ class _AlbumVideo2State extends State<AlbumVideo2> {
             future: _initializeVideoPlayerFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
-                return AspectRatio(
-                  aspectRatio: videoPlayerController.value.aspectRatio,
-                  child: VideoPlayer(videoPlayerController),
-                );
+                return Center(
+                    child: videoPlayerController.value.isInitialized ?
+                    AspectRatio(
+                    aspectRatio: videoPlayerController.value.aspectRatio,
+                    child: VideoPlayer(videoPlayerController,),)
+                  : Container());
               } else {
-                return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
               }
             },
           );
@@ -56,7 +67,8 @@ class _AlbumVideo2State extends State<AlbumVideo2> {
         onPageChanged: (index) {
           setState(() {
             videoPlayerController.pause();
-            videoPlayerController = VideoPlayerController.file(File(widget.videos[index]));
+            videoPlayerController =
+                VideoPlayerController.file(File(widget.videos[index]));
             _initializeVideoPlayerFuture = videoPlayerController.initialize();
           });
         },
@@ -71,7 +83,10 @@ class _AlbumVideo2State extends State<AlbumVideo2> {
             }
           });
         },
-        child: Icon(videoPlayerController.value.isPlaying ? Icons.pause : Icons.play_arrow),
+        child: Icon(
+          videoPlayerController.value.isPlaying ? Icons.pause : Icons
+              .play_arrow,
+        ),
       ),
     );
   }
